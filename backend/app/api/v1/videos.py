@@ -43,9 +43,12 @@ async def generate_video(
 
     await db.flush()
 
-    # TODO: Trigger Celery task for video generation
-    # from app.workers.video_tasks import generate_video_task
-    # generate_video_task.delay(str(video.id), data.ai_provider, data.tts_provider)
+    # Trigger Celery task for video generation
+    from app.workers.video_tasks import generate_video_task
+    generate_video_task.delay(str(video.id), data.ai_provider, data.tts_provider)
+
+    video.status = "queued"
+    await db.flush()
 
     return video
 
