@@ -84,15 +84,26 @@ async def _publish_video_pipeline(publish_job_id: str, task=None):
                 "platform_user_id": account.platform_user_id,
             }
 
-            # 5. Publish via service
+            # 5. Build publish params with metadata overrides
+            meta = job.metadata or {}
+            title = meta.get("title_override") or variant.title or "Untitled Video"
+            description = meta.get("description_override") or variant.description or ""
+            tags = meta.get("tags_override") or variant.hashtags
+
+            # Remove override keys from extra kwargs
+            extra_kwargs = {
+                k: v for k, v in meta.items()
+                if k not in ("title_override", "description_override", "tags_override", "language")
+            }
+
             publish_result = await PublishService.publish_video(
                 platform=job.platform,
                 credentials=credentials,
                 video_path=variant.file_url,
-                title=variant.title or "Untitled Video",
-                description=variant.description or "",
-                tags=variant.hashtags,
-                **(job.metadata or {}),
+                title=title,
+                description=description,
+                tags=tags,
+                **extra_kwargs,
             )
 
             # 6. Update job with result

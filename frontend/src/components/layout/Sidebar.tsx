@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Share2,
   Settings,
+  History,
 } from 'lucide-react'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -18,6 +19,7 @@ const navItems = [
   { to: '/templates', icon: LayoutTemplate, label: 'Templates' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/prompts', icon: History, label: 'Prompt History' },
   { to: '/accounts', icon: Share2, label: 'Social Accounts' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]

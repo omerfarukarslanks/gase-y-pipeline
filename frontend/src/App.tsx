@@ -9,6 +9,7 @@ import VideoDetail from './pages/VideoDetail'
 import Templates from './pages/Templates'
 import Analytics from './pages/Analytics'
 import Calendar from './pages/Calendar'
+import PromptHistory from './pages/PromptHistory'
 import SocialAccounts from './pages/SocialAccounts'
 import Settings from './pages/Settings'
 
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="templates" element={<Templates />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="calendar" element={<Calendar />} />
+        <Route path="prompts" element={<PromptHistory />} />
         <Route path="accounts" element={<SocialAccounts />} />
         <Route path="settings" element={<Settings />} />
       </Route>

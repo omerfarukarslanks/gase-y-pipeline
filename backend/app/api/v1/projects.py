@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ForbiddenException, NotFoundException
 from app.db.session import get_db
 from app.dependencies import get_current_user
+from app.models.analytics import PromptHistory
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
@@ -30,6 +31,16 @@ async def create_project(
     )
     db.add(project)
     await db.flush()
+
+    # Auto-save prompt to history
+    prompt_entry = PromptHistory(
+        user_id=current_user.id,
+        prompt_text=data.prompt,
+        project_id=project.id,
+    )
+    db.add(prompt_entry)
+    await db.flush()
+
     return project
 
 
