@@ -22,3 +22,4 @@ class User(Base, UUIDMixin, TimestampMixin):
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     platform_accounts = relationship("PlatformAccount", back_populates="user", cascade="all, delete-orphan")
     prompt_history = relationship("PromptHistory", back_populates="user", cascade="all, delete-orphan")
+    webhooks = relationship("Webhook", back_populates="user", cascade="all, delete-orphan")

@@ -108,6 +108,23 @@ async def _generate_video_pipeline(video_id: str, ai_provider: str, tts_provider
                     variant.title = project.title
                     variant.description = project.original_prompt
 
+                # 3a-2. SEO: generate hashtags and optimize description
+                try:
+                    from app.services.seo import SEOService
+                    seo = SEOService(ai_provider=ai_provider)
+                    variant.hashtags = await seo.generate_hashtags(
+                        variant.description or project.original_prompt,
+                        "youtube",
+                        variant.language,
+                    )
+                    variant.description = await seo.optimize_description(
+                        variant.description or project.original_prompt,
+                        "youtube",
+                        variant.language,
+                    )
+                except Exception as seo_err:
+                    logger.warning(f"SEO generation failed for {variant.language}: {seo_err}")
+
                 variant.status = "generating_audio"
                 await db.commit()
 
@@ -188,6 +205,21 @@ async def _generate_video_pipeline(video_id: str, ai_provider: str, tts_provider
             await db.commit()
 
             notify_video_progress(user_id, video_id, "completed", status="completed")
+
+            # Dispatch webhook
+            try:
+                from app.utils.webhook_dispatcher import dispatch_webhook_event
+                await dispatch_webhook_event(user_id, "video.completed", {
+                    "video_id": video_id,
+                    "status": video.status,
+                    "variants": [
+                        {"language": v.language, "status": v.status}
+                        for v in variants
+                    ],
+                })
+            except Exception:
+                pass
+
             logger.info(f"Video generation completed: {video_id}")
             return {"video_id": video_id, "status": video.status}
 
@@ -201,6 +233,16 @@ async def _generate_video_pipeline(video_id: str, ai_provider: str, tts_provider
                     variant.status = "failed"
             await db.commit()
             notify_video_progress(user_id, video_id, "failed", status="failed")
+
+            try:
+                from app.utils.webhook_dispatcher import dispatch_webhook_event
+                await dispatch_webhook_event(user_id, "video.failed", {
+                    "video_id": video_id,
+                    "error": str(e)[:500],
+                })
+            except Exception:
+                pass
+
             raise
 
 
