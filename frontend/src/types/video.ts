@@ -40,6 +40,7 @@ export interface Template {
   scene_structure: Record<string, unknown>
   default_settings: Record<string, unknown>
   is_system: boolean
+  user_id: string | null
   created_at: string
 }
 
@@ -50,4 +51,14 @@ export interface VideoGenerateRequest {
   resolution: string
   ai_provider: string
   tts_provider: string
+}
+
+export interface MusicTrack {
+  id: string
+  name: string
+  category: string
+  mood: string
+  duration_sec: number
+  filename: string
+  available: boolean
 }

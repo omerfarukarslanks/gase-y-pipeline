@@ -1,18 +1,44 @@
-import { useState } from 'react'
-import { Wand2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { Wand2, LayoutTemplate, Music } from 'lucide-react'
 import { toast } from 'sonner'
 import PromptInput from '../components/video/PromptInput'
 import LanguageSelector from '../components/video/LanguageSelector'
 import PlatformSelector from '../components/video/PlatformSelector'
 import VideoEditor from '../components/video/VideoEditor'
+import MusicSelector from '../components/video/MusicSelector'
 import { useVideoStore } from '../stores/videoStore'
 import { useCreateProject, useGenerateVideo } from '../hooks/useVideo'
+import { templatesApi } from '../api/templates'
+import type { Template } from '../types/video'
 
 export default function CreateVideo() {
   const [step, setStep] = useState<'prompt' | 'settings' | 'generating'>('prompt')
+  const [searchParams] = useSearchParams()
+  const templateId = searchParams.get('template')
   const store = useVideoStore()
   const createProject = useCreateProject()
   const generateVideo = useGenerateVideo()
+
+  // Load template if specified in URL
+  const { data: template } = useQuery({
+    queryKey: ['template', templateId],
+    queryFn: () => templatesApi.get(templateId!),
+    select: (res) => res.data,
+    enabled: !!templateId,
+  })
+
+  // Apply template defaults when loaded
+  useEffect(() => {
+    if (template) {
+      const defaults = template.default_settings || {}
+      if (defaults.aspect_ratio) store.setAspectRatio(defaults.aspect_ratio as string)
+      if (defaults.ai_provider) store.setAiProvider(defaults.ai_provider as string)
+      if (defaults.tts_provider) store.setTtsProvider(defaults.tts_provider as string)
+      if (defaults.bg_music) store.setBgMusic(defaults.bg_music as string)
+    }
+  }, [template])
 
   const handleGenerate = async () => {
     if (!store.prompt.trim()) {
@@ -29,6 +55,8 @@ export default function CreateVideo() {
           tts_provider: store.ttsProvider,
           languages: store.languages,
           platforms: store.selectedPlatforms,
+          template_id: templateId || undefined,
+          bg_music: store.bgMusic || undefined,
         },
       })
 
@@ -57,6 +85,14 @@ export default function CreateVideo() {
           Enter a prompt and configure your video settings
         </p>
       </div>
+
+      {/* Template badge */}
+      {template && (
+        <div className="flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm text-brand-700">
+          <LayoutTemplate className="h-4 w-4" />
+          Using template: <span className="font-medium">{template.name}</span>
+        </div>
+      )}
 
       {step === 'generating' ? (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
@@ -87,6 +123,10 @@ export default function CreateVideo() {
                 <VideoEditor />
                 <LanguageSelector />
                 <PlatformSelector />
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-6">
+                <MusicSelector />
               </div>
 
               <button

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.media import router as media_router
 from app.api.v1.platforms import router as platforms_router
 from app.api.v1.projects import router as projects_router
 from app.api.v1.prompts import router as prompts_router
@@ -22,4 +23,5 @@ api_v1_router.include_router(templates_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(schedule_router)
 api_v1_router.include_router(prompts_router)
+api_v1_router.include_router(media_router)
 api_v1_router.include_router(webhooks_router)

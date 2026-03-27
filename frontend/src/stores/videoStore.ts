@@ -7,12 +7,14 @@ interface VideoCreationState {
   aiProvider: string
   ttsProvider: string
   selectedPlatforms: string[]
+  bgMusic: string | null
   setPrompt: (prompt: string) => void
   setLanguages: (languages: string[]) => void
   setAspectRatio: (ratio: string) => void
   setAiProvider: (provider: string) => void
   setTtsProvider: (provider: string) => void
   setSelectedPlatforms: (platforms: string[]) => void
+  setBgMusic: (trackId: string | null) => void
   reset: () => void
 }
 
@@ -23,6 +25,7 @@ const initialState = {
   aiProvider: 'openai',
   ttsProvider: 'elevenlabs',
   selectedPlatforms: ['youtube'],
+  bgMusic: null as string | null,
 }
 
 export const useVideoStore = create<VideoCreationState>()((set) => ({
@@ -33,5 +36,6 @@ export const useVideoStore = create<VideoCreationState>()((set) => ({
   setAiProvider: (provider) => set({ aiProvider: provider }),
   setTtsProvider: (provider) => set({ ttsProvider: provider }),
   setSelectedPlatforms: (platforms) => set({ selectedPlatforms: platforms }),
+  setBgMusic: (trackId) => set({ bgMusic: trackId }),
   reset: () => set(initialState),
 }))

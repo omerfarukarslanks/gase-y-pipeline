@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Play, Globe, Send, RefreshCw, CheckCircle, XCircle,
   Clock, Loader2, ExternalLink, ChevronDown, ChevronUp,
+  Image, FileText, Download,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -11,6 +12,7 @@ import StatusBadge from '../components/common/StatusBadge'
 import { useProject } from '../hooks/useVideo'
 import { videosApi } from '../api/videos'
 import { platformsApi } from '../api/platforms'
+import { mediaApi } from '../api/media'
 import type { VideoVariant } from '../types/video'
 import type { PlatformAccount, PublishJob } from '../types/platform'
 
@@ -92,6 +94,23 @@ export default function VideoDetail() {
       queryClient.invalidateQueries({ queryKey: ['publish-jobs'] })
       toast.success('Retrying publish...')
     },
+  })
+
+  const thumbnailMutation = useMutation({
+    mutationFn: () => mediaApi.generateThumbnail(video!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-video'] })
+      toast.success('Thumbnail generation started')
+    },
+    onError: () => toast.error('Failed to generate thumbnail'),
+  })
+
+  const subtitleMutation = useMutation({
+    mutationFn: (language: string) => mediaApi.generateSubtitles(video!.id, language),
+    onSuccess: () => {
+      toast.success('Subtitles generated')
+    },
+    onError: () => toast.error('Failed to generate subtitles'),
   })
 
   if (projectLoading) {
@@ -291,6 +310,41 @@ export default function VideoDetail() {
               </div>
             </dl>
           </div>
+
+          {/* Tools: Thumbnail & Subtitles */}
+          {video && completedVariants.length > 0 && (
+            <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+              <h3 className="text-sm font-medium text-gray-700">Tools</h3>
+
+              <button
+                onClick={() => thumbnailMutation.mutate()}
+                disabled={thumbnailMutation.isPending}
+                className="flex w-full items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Image className="h-4 w-4 text-purple-500" />
+                {thumbnailMutation.isPending ? 'Generating...' : 'Generate AI Thumbnail'}
+              </button>
+
+              {video.thumbnail_url && (
+                <div className="rounded-lg overflow-hidden border border-gray-200">
+                  <img src={video.thumbnail_url} alt="Thumbnail" className="w-full" />
+                </div>
+              )}
+
+              {selectedVariant && selectedVariant.status === 'completed' && (
+                <button
+                  onClick={() => subtitleMutation.mutate(selectedVariant.language)}
+                  disabled={subtitleMutation.isPending}
+                  className="flex w-full items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <FileText className="h-4 w-4 text-blue-500" />
+                  {subtitleMutation.isPending
+                    ? 'Generating...'
+                    : `Generate Subtitles (${selectedVariant.language.toUpperCase()})`}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Publish panel */}
           {showPublish && selectedVariant && (

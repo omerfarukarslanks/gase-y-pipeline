@@ -159,6 +159,16 @@ async def _generate_video_pipeline(video_id: str, ai_provider: str, tts_provider
                 else:
                     variant.status = "failed"
 
+                # 3d. Generate subtitles
+                try:
+                    from app.services.subtitle import SubtitleService
+                    paths = SubtitleService.generate_both_formats(
+                        translated_scenes, str(video.id), variant.language
+                    )
+                    variant.subtitle_url = paths["vtt"]
+                except Exception as sub_err:
+                    logger.warning(f"Subtitle generation failed for {variant.language}: {sub_err}")
+
                 await db.commit()
 
             # 4. Calculate video duration from first completed variant
@@ -304,4 +314,57 @@ def generate_variant_task(self, video_id: str, variant_id: str, language: str):
         return result
     except Exception as exc:
         logger.error(f"Variant generation failed: {exc}")
+        raise self.retry(exc=exc, countdown=30)
+
+
+# ── Thumbnail Generation Task ──────────────────────────────────
+
+async def _generate_thumbnail_pipeline(video_id: str, image_provider: str, style: str):
+    """Generate AI thumbnail for a video."""
+    from sqlalchemy import select
+
+    from app.db.session import async_session_factory
+    from app.models.project import Project
+    from app.models.video import Video
+    from app.services.thumbnail import ThumbnailService
+
+    async with async_session_factory() as db:
+        result = await db.execute(select(Video).where(Video.id == uuid.UUID(video_id)))
+        video = result.scalar_one_or_none()
+        if not video:
+            raise ValueError(f"Video {video_id} not found")
+
+        result = await db.execute(select(Project).where(Project.id == video.project_id))
+        project = result.scalar_one_or_none()
+        if not project:
+            raise ValueError(f"Project not found for video {video_id}")
+
+        svc = ThumbnailService(image_provider=image_provider)
+        thumb_path = await svc.generate_and_save(
+            title=project.title,
+            description=project.original_prompt,
+            video_id=video_id,
+            aspect_ratio=video.aspect_ratio,
+            style=style,
+        )
+
+        video.thumbnail_url = thumb_path
+        await db.commit()
+
+        user_id = str(project.user_id)
+        from app.utils.notifications import notify_video_progress
+        notify_video_progress(user_id, video_id, "thumbnail_ready", status="completed")
+
+        logger.info(f"Thumbnail generated for video {video_id}: {thumb_path}")
+        return {"video_id": video_id, "thumbnail_url": thumb_path}
+
+
+@celery_app.task(bind=True, name="generate_thumbnail", max_retries=2)
+def generate_thumbnail_task(self, video_id: str, image_provider: str = "dalle", style: str = "modern"):
+    """Generate AI thumbnail for a video."""
+    logger.info(f"Generating thumbnail for video {video_id}")
+    try:
+        return _run_async(_generate_thumbnail_pipeline(video_id, image_provider, style))
+    except Exception as exc:
+        logger.error(f"Thumbnail generation failed: {exc}")
         raise self.retry(exc=exc, countdown=30)
