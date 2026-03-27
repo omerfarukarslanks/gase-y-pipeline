@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -21,27 +22,29 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="create" element={<CreateVideo />} />
-        <Route path="videos" element={<MyVideos />} />
-        <Route path="videos/:id" element={<VideoDetail />} />
-        <Route path="templates" element={<Templates />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="calendar" element={<Calendar />} />
-        <Route path="prompts" element={<PromptHistory />} />
-        <Route path="accounts" element={<SocialAccounts />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="create" element={<CreateVideo />} />
+          <Route path="videos" element={<MyVideos />} />
+          <Route path="videos/:id" element={<VideoDetail />} />
+          <Route path="templates" element={<Templates />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="prompts" element={<PromptHistory />} />
+          <Route path="accounts" element={<SocialAccounts />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Routes>
+    </ErrorBoundary>
   )
 }

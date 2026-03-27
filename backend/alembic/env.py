@@ -18,6 +18,7 @@ from app.models.publish_job import PublishJob
 from app.models.template import Template
 from app.models.analytics import AnalyticsSnapshot, PromptHistory
 from app.models.schedule import ABTest
+from app.models.webhook import Webhook
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
