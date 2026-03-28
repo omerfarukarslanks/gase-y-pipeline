@@ -1,5 +1,8 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import List
+
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -32,8 +35,8 @@ class Settings(BaseSettings):
     DEEPL_API_KEY: str = ""
 
     # YouTube
-    YOUTUBE_CLIENT_ID: str = ""
-    YOUTUBE_CLIENT_SECRET: str = ""
+    YOUTUBE_CLIENT_ID: str = "774656483317-jc7pg4v8v9c6ifm8if2bc209o343385o.apps.googleusercontent.com"
+    YOUTUBE_CLIENT_SECRET: str = "**R5WI"
     YOUTUBE_REDIRECT_URI: str = "http://localhost:8000/api/v1/platforms/youtube/callback"
 
     # Instagram
@@ -62,7 +65,11 @@ class Settings(BaseSettings):
     # Media
     MEDIA_DIR: str = "./media"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": BASE_DIR / ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

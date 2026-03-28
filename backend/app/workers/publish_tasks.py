@@ -85,7 +85,7 @@ async def _publish_video_pipeline(publish_job_id: str, task=None):
             }
 
             # 5. Build publish params with metadata overrides
-            meta = job.metadata or {}
+            meta = job.publish_metadata or {}
             title = meta.get("title_override") or variant.title or "Untitled Video"
             description = meta.get("description_override") or variant.description or ""
             tags = meta.get("tags_override") or variant.hashtags

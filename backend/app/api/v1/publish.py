@@ -68,7 +68,7 @@ async def publish_video(
             platform=account.platform,
             scheduled_at=data.scheduled_at,
             status="scheduled" if data.scheduled_at else "pending",
-            metadata=job_metadata if job_metadata else None,
+            publish_metadata=job_metadata if job_metadata else None,
         )
         db.add(job)
         await db.flush()
@@ -131,7 +131,7 @@ async def publish_multi_variant(
                 platform=account.platform,
                 scheduled_at=data.scheduled_at,
                 status="scheduled" if data.scheduled_at else "pending",
-                metadata={"language": variant.language},
+                publish_metadata={"language": variant.language},
             )
             db.add(job)
             await db.flush()

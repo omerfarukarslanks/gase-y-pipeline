@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PlatformAccountResponse(BaseModel):
@@ -39,7 +39,7 @@ class PublishJobResponse(BaseModel):
     platform_url: str | None
     platform_post_id: str | None
     error_message: str | None
-    metadata: dict | None
+    metadata: dict | None = Field(default=None, validation_alias="publish_metadata")
     created_at: datetime
 
     model_config = {"from_attributes": True}

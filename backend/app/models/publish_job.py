@@ -26,7 +26,7 @@ class PublishJob(Base, UUIDMixin, TimestampMixin):
         String(50), default="pending"
     )  # pending, scheduled, publishing, published, failed
     error_message: Mapped[str | None] = mapped_column(Text)
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    publish_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
     # Relationships
     video_variant = relationship("VideoVariant", back_populates="publish_jobs")
